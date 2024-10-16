@@ -132,6 +132,9 @@
   <ItemGroup>
     <ClCompile Include="setup-opengl.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="code.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
