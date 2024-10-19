@@ -10,45 +10,51 @@ auto closeWindow = false;
 const int WIN_WIDTH = 1920;
 const int WIN_HEIGHT = 1080;
 
-unsigned int program; // ask about in
-unsigned int VBO;
+unsigned int program; // int for program?
+unsigned int VBO; // why VBO an int?
 
 const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
+"layout (location = 0) in vec3 aPos;\n" //  location 0 and 1?
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
-"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"	gl_Position = vec4(aPos, 1.0);\n"
+"	vertexColor = aColor;\n"	
 "}\0";
 
 const char* fragmentShaderSource = "#version 330 core\n"
+"in vec3 vertexColor;\n"
 "out vec4 FragColor;\n"
+//"uniform vec4 ourColor;\n"
 "void main()\n"
 "{\n"
-"	FragColor = vec4(0.6f, 0.3f, 0.9f, 1.0f);\n"
-"}\n\0";
+//"	FragColor = ourColor;\n"
+"	FragColor = vec4(vertexColor, 1.0);\n"
+"}\n\0"; // 0?
 
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
-}
+};
 
 static void shaderProgram()
 {
 	// build and compile our shader program
 
 	// vertex shader
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER); // ask about int
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
 
-	// check for vertex shader compile errors
+	// check for vertex shader compile errrors
 	int success;
 	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success); // ask
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::VERTEX::COMPLICATION_FAILED\n" << infoLog << endl;
+		cout << "ERROR::SUCCESS::VERTEX::COMPLICATION_FAILED\n" << infoLog << endl;
 	}
 
 	// fragment shader
@@ -56,12 +62,12 @@ static void shaderProgram()
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
-	//check for shader compile errors
+	// check for shader compile errors
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::FRAGMENT::COMPLIATION_FAILED\n" << infoLog << endl;
+		cout << "ERROR::SHADER::FRAGMENT::COMPLICATION_FAILED\n" << infoLog << endl;
 	}
 
 	// link shaders
@@ -70,64 +76,46 @@ static void shaderProgram()
 	glAttachShader(program, fragmentShader);
 	glLinkProgram(program);
 
-	//check for linking errors
+	// check for linking errors
 	glGetProgramiv(program, GL_LINK_STATUS, &success);
-	if (!success) 
+	if (!success)
 	{
 		glGetProgramInfoLog(program, 512, NULL, infoLog);
 		cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
 	}
 
-	// once shaders are linked to the program
-	// we dont need them anymore
+	// delete uneeded shaders
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
 	// Set up vertex data and buffers
-	// ---------------------------------------------------------
-	// Set up vertex data - in our RAM
+	/*float vertices[] =
+	{
+		-0.5f, -0.5f, 0.0f, // Bottom left
+		0.5f, -0.5f, 0.0f, // Bottom right
+		0.0f, 0.5f, 0.0f // Top
+	};
+	*/
+
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // Left
-		0.5f, -0.5f, 0.0f, // right
-		0.0f, 0.5f, 0.0f // top
+		// Positions          // Colors
+		-0.5f, -0.5f, 0.0f,	  1.0f, 0.0f, 0.0f, // Red Line
+		0.5f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
+
+		-0.5f, 0.0f, 0.0f,	  0.0f, 1.0f, 0.0f, // Green Line
+		0.5f, 0.0f, 0.0f,     0.0f, 1.0f, 0.0f,
+
+		-0.5f, 0.5f, 0.0f,    0.0f, 0.0f, 1.0f, // Blue Line
+		0.5f, 0.5f, 0.0f,     0.0f, 0.0f, 1.0f
 	};
 
-	// Buffer object?
-	// A chunck of memory on the GPU that stores data
-	//[GPU : (Buffer)]
-	// It stores data such as: vertex, positions, normals, indices, and etc.
-	// [GPU : (Buffers(vertex data))]
-	// Buffer objects allow the CPU to send large amounts of data
-	// to the GPU
-	// [CPU : vertices[]] ---> [GPU : Buffers(vertices[])] --> Process and render
-
-	// Types of Buffer Objects?
-	// VBO - Vertex Buffer Object:
-	// Stores vertex attributes like positions, colors, texture coordinates, normals, and etc
-
-	// Generate buffer - create unique ID for the buffer object
-	//[GPU : ID]
-	// We ae merely initializing an ID, which will reference a buffer object(s)
-	//[GPU : ID] --> [GPU : ID = Buffer Object]
-	// No memory is allocated yet
+	// Generate ID for buffer object
 	glGenBuffers(1, &VBO);
 
-	// glBindBUffer - bind the ID we just created
-	// We are telling OpenGL that we want to use this specific ID
-	// And inform which type of buffer we want to use on this ID
-	// GL_ARRAY_BUFFER - is a target used for vertex attribute data
-	// VBO - a buffer that stores vertex data in the GPU memory.
-	// This allows the GPU to access data directly during rendering without
-	// needing to communicate with the CPU each time.
-	// Using them together - bind VBO to GL_ARRAY_BUFFER, OpenGL knows
-	// that the buffer will store vertex data
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Bind buffer with ID and inform which type of buffer we want to use
+	glBindBuffer(GL_ARRAY_BUFFER, VBO); // VBO the ID?
 
-	// glBufferData - allocates(makes space for VBO) memory on the GPU for the buffer
-	// and uploads the vertex data to the GPU memory. Now, the vertex data 
-	// is stored in the VBO (GPU memory), ready for rendering
-	// takes a target(buffer type), size of the data(in bytes) - how to memory to allocate, 
-	// data which will be copied into the buffer, usage
+	// Allocate and upload data to our buffer ID
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 
@@ -157,11 +145,11 @@ void createWindow()
 	glfwSetKeyCallback(window, key_callback);
 
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1); // Buffer swaping but checking refresh rate first - ask
+	glfwSwapInterval(1); // difference between this and swap buffers?
 	glfwShowWindow(window);
 
-	auto ginit = glewInit();
-	if (ginit != GLEW_OK)
+	auto gint = glewInit();
+	if (gint != GLEW_OK)
 	{
 		cout << "Failed init glew" << '\n';
 		return;
@@ -173,8 +161,6 @@ void createWindow()
 		string glversion((char*)glVersionBytes);
 		string glvendor((char*)glVendorBytes);
 
-
-
 		cout << "glew init success" << '\n';
 		cout << glversion << '\n';
 		cout << glvendor << '\n';
@@ -184,7 +170,7 @@ void createWindow()
 
 void setupOpenGL()
 {
-	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
+	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 }
 
 int main()
@@ -195,19 +181,23 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		glClear(GL_COLOR_BUFFER_BIT); // color created on line 187, is used here
+		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(program); // shader program is used
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		// Update the uniform color
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(program, "ourColor");
+		glUseProgram(program);
+		glUniform4f(vertexColorLocation, 0.1f, 0.3f, 8.0f, 1.0f);
 
-		// layout for vertex attribute data for rendering
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0); // why 0
 
-		// used to render primitives from the vertex data 
-		// currently stored in vertex buffer objects (VBOs).
-		// start at 0 index of data set and use blocks of 3
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glVertexAttribPointer(1,3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // ask
+		glEnableVertexAttribArray(1);
+
+		// render primitives
+		glDrawArrays(GL_LINES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -217,5 +207,4 @@ int main()
 
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
-
 }
