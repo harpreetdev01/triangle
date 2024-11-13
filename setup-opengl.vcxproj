@@ -130,12 +130,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="setup-opengl.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="code.txt" />
     <Text Include="ravi-code.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="setup-opengl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
