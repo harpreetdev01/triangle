@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="setup-opengl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -25,5 +22,6 @@
   <ItemGroup>
     <Text Include="code.txt" />
     <Text Include="ravi-code.txt" />
+    <Text Include="quad.txt" />
   </ItemGroup>
 </Project>
